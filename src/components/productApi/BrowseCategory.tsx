@@ -68,13 +68,68 @@ export default function BrowseCategory() {
 
     <div className="flex gap-4">
 
-      <button className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition">
-        <ArrowLeft size={24} className="md:w-[35px] md:h-[35px]" />
-      </button>
 
-      <button className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition">
-        <ArrowRight size={24} className="md:w-[35px] md:h-[35px]" />
-      </button>
+  <button
+  className="
+    w-12
+    h-12
+    md:w-16
+    md:h-16
+    rounded-full
+
+    bg-gray-100
+    dark:bg-transparent
+
+    dark:border
+    dark:border-zinc-700
+
+    flex
+    items-center
+    justify-center
+
+    hover:bg-gray-200
+    dark:hover:bg-zinc-800
+
+    transition
+    duration-300
+  "
+>
+  <ArrowLeft
+    size={24}
+    className="md:w-[35px] md:h-[35px]"
+  />
+</button>
+
+<button
+  className="
+    w-12
+    h-12
+    md:w-16
+    md:h-16
+    rounded-full
+
+    bg-gray-100
+    dark:bg-transparent
+
+    dark:border
+    dark:border-zinc-700
+
+    flex
+    items-center
+    justify-center
+
+    hover:bg-gray-200
+    dark:hover:bg-zinc-800
+
+    transition
+    duration-300
+  "
+>
+  <ArrowRight
+    size={24}
+    className="md:w-[35px] md:h-[35px]"
+  />
+</button>
 
     </div>
   </div>
@@ -86,29 +141,36 @@ export default function BrowseCategory() {
       const Icon = item.icon;
 
       return (
-        <Card
-          key={item.id}
-          className={`
-            h-[150px]
-            md:h-[220px]
-            flex
-            flex-col
-            items-center
-            justify-center
-            border
-            cursor-pointer
-            transition-all
-            duration-300
-            hover:bg-red-500
-            hover:text-white
-            hover:scale-105
-            ${
-              item.active
-                ? "bg-red-500 text-white border-red-500"
-                : "bg-white"
-            }
-          `}
-        >
+   <Card
+  key={item.id}
+  className={`
+    h-[150px]
+    md:h-[220px]
+    flex
+    flex-col
+    items-center
+    justify-center
+    border
+    cursor-pointer
+    transition-all
+    duration-300
+    hover:bg-red-500
+    hover:text-white
+    hover:scale-105
+
+    bg-white
+    dark:bg-transparent
+    dark:border-zinc-700
+    dark:hover:bg-red-500
+    dark:hover:text-white
+
+    ${
+      item.active
+        ? "bg-red-500 text-white border-red-500"
+        : ""
+    }
+  `}
+>
           <Icon
             size={35}
             strokeWidth={1.5}

@@ -1,52 +1,17 @@
 import { Card } from "@/components/ui/card";
 import { Heart, Eye, Star, StarHalf } from "lucide-react";
-import kurtka from "./productimgskidki/Frame 605 (1).png"
-import sumka from "./productimgskidki/Frame 606.png"
-import sambufer from "./productimgskidki/Frame 610.png"
-import tabl from "./productimgskidki/Frame 612 (1).png"
-const products = [
-  {
-    id: 1,
-    title: "The north coat",
-    price: 260,
-    oldPrice: 360,
-    rating: 5,
-    reviews: 65,
-    image:kurtka
-  },
-  {
-    id: 2,
-    title: "Gucci duffle bag",
-    price: 960,
-    oldPrice: 1160,
-    rating: 4.5,
-    reviews: 65,
-    image:sumka
-  },
-  {
-    id: 3,
-    title: "RGB liquid CPU Cooler",
-    price: 160,
-    oldPrice: 170,
-    rating: 4.5,
-    reviews: 65,
-    image:sambufer
-  },
-  {
-    id: 4,
-    title: "Small BookSelf",
-    price: 360,
-    oldPrice: null,
-    rating: 5,
-    reviews: 65,
-    image:tabl
-  },
-];
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
+const url =
+  "https://fastcard-1-o23z.onrender.com/api/Product/get-products";
 
 function Rating({ value }: { value: number }) {
   return (
     <div className="flex items-center gap-1">
-      {[1,2,3,4,5].map((star) => {
+      {[1, 2, 3, 4, 5].map((star) => {
+
         if (star <= Math.floor(value)) {
           return (
             <Star
@@ -80,94 +45,258 @@ function Rating({ value }: { value: number }) {
 }
 
 export default function BestSelling() {
+
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+async function getProducts() {
+  try {
+    const { data } = await axios.get(url);
+
+    // ВСЕ ПРОДУКТЫ
+    const allProducts = data?.data?.products || [];
+
+    // ТОЛЬКО СО СКИДКОЙ
+    const discountProducts = allProducts.filter(
+      (item: any) => item.hasDiscount === true
+    );
+
+    setProducts(discountProducts);
+
+  } catch (error) {
+
+    console.log(error);
+    setProducts([]);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+}
+
+useEffect(() => {
+  getProducts();
+}, []);
+
+
+  if (loading) {
+    return (
+      <div className="text-center text-4xl py-20 font-bold">
+        Loading...
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-[1400px] mx-auto py-16">
+    <div className="max-w-[1400px] mx-auto py-16 px-4">
 
       {/* top */}
       <div className="flex items-center gap-4">
+
         <div className="w-5 h-12 bg-red-500 rounded-md"></div>
 
         <p className="text-red-500 font-semibold text-2xl">
           This Month
         </p>
+
       </div>
 
       <div className="flex justify-between items-center mt-8">
 
-        <h1 className="text-6xl font-bold">
+        <h1 className="text-3xl md:text-6xl font-bold">
           Best Selling Products
         </h1>
 
-        <button className="bg-red-500 text-white px-14 py-5 rounded-md text-2xl">
+        <Link className="bg-red-500 text-white px-8 md:px-14 py-3 md:py-5 rounded-md text-lg md:text-2xl" to="/category" >
           View All
-        </button>
+        </Link>
 
       </div>
 
       {/* cards */}
-      <div className="grid md:grid-cols-4 gap-10 mt-14">
+      {products.length === 0 ? (
 
-        {products.map((item) => (
-          <div key={item.id}>
+        <div className="text-center text-3xl font-bold py-20">
+          No Products
+        </div>
 
-            <Card className="group bg-[#f5f5f5] border-none p-5 relative overflow-hidden h-[350px]">
+      ) : (
 
-              {/* icons */}
-              <div className="absolute top-4 right-4 flex flex-col gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-10 mt-14">
 
-                <button className="bg-white rounded-full p-3">
-                  <Heart />
-                </button>
+          {products.map((item: any) => (
 
-                <button className="bg-white rounded-full p-3">
-                  <Eye />
-                </button>
+            <div key={item.id}>
+<Card
+  className="
+    group
 
-              </div>
+    bg-[#f5f5f5]
+    dark:bg-zinc-900/40
 
-              <div className="h-full flex items-center justify-center">
-                <img
-                  src={item.image}
-                  className="w-[250px] h-[250px] object-contain transition group-hover:scale-105"
-                  alt=""
-                />
-              </div>
+    backdrop-blur-md
 
-            </Card>
+    dark:border
+    dark:border-zinc-700
 
-            <div className="mt-5">
+    border-none
+    p-5
+    relative
+    overflow-hidden
 
-              <h2 className="text-2xl font-semibold">
-                {item.title}
-              </h2>
+    h-[250px]
+    md:h-[350px]
 
-              <div className="flex gap-4 mt-3">
-                <span className="text-red-500 text-2xl font-semibold">
-                  ${item.price}
-                </span>
+    duration-300
+  "
+>
 
-                {item.oldPrice && (
-                  <span className="text-gray-400 text-2xl line-through">
-                    ${item.oldPrice}
+  {/* icons */}
+
+  <div
+    className="
+      absolute
+      top-4
+      right-4
+      flex
+      flex-col
+      gap-4
+      z-20
+    "
+  >
+
+    <button
+      className="
+        bg-white
+        dark:bg-black/40
+
+        backdrop-blur-md
+
+        dark:border
+        dark:border-zinc-700
+
+        rounded-full
+        p-2
+        md:p-3
+
+        transition
+        duration-300
+
+        hover:scale-110
+        dark:hover:bg-zinc-800/60
+      "
+    >
+      <Heart size={20} />
+    </button>
+
+    <button
+      className="
+        bg-white
+        dark:bg-black/40
+
+        backdrop-blur-md
+
+        dark:border
+        dark:border-zinc-700
+
+        rounded-full
+        p-2
+        md:p-3
+
+        transition
+        duration-300
+
+        hover:scale-110
+        dark:hover:bg-zinc-800/60
+      "
+    >
+      <Eye size={20} />
+    </button>
+
+  </div>
+
+  {/* image */}
+
+  <div
+    className="
+      h-full
+      flex
+      items-center
+      justify-center
+    "
+  >
+
+    <img
+      src={item.image}
+      className="
+        w-[140px]
+        md:w-[250px]
+
+        h-[140px]
+        md:h-[250px]
+
+        object-contain
+
+        transition
+        duration-300
+
+        group-hover:scale-105
+      "
+      alt={item.productName}
+    />
+
+  </div>
+
+</Card>
+
+              {/* content */}
+              <div className="mt-5">
+
+                <h2 className="text-lg md:text-2xl font-semibold">
+
+                  {item.productName || item.name}
+
+                </h2>
+
+                {/* prices */}
+                <div className="flex gap-4 mt-3">
+
+                  <span className="text-red-500 text-xl md:text-2xl font-semibold">
+
+                    ${item.price}
+
                   </span>
-                )}
-              </div>
 
-              <div className="flex items-center gap-3 mt-4">
+                  <span className="text-gray-400 text-xl md:text-2xl line-through">
 
-                <Rating value={item.rating} />
+                    ${item.price + 100}
 
-                <span className="text-gray-500 text-xl">
-                  ({item.reviews})
-                </span>
+                  </span>
+
+                </div>
+
+                {/* rating */}
+                <div className="flex items-center gap-3 mt-4">
+
+                  <Rating value={4.5} />
+
+                  <span className="text-gray-500 text-lg md:text-xl">
+                    (65)
+                  </span>
+
+                </div>
 
               </div>
 
             </div>
 
-          </div>
-        ))}
-      </div>
+          ))}
+
+        </div>
+
+      )}
+
     </div>
   );
 }

@@ -13,6 +13,7 @@ import Contact from './components/Contact';
 import Login from './components/Login';
 import Details from './components/details';
 import Cart from './components/Card';
+import WishlistPage from './components/WishlistPage';
 const App = () => {
   const route = createBrowserRouter([
     {
@@ -59,6 +60,10 @@ const App = () => {
     {
       path:"/category",
       element:<Category/>
+    },
+    {
+      path:"/wishlist",
+      element:<WishlistPage/>
     }
       ]
     }

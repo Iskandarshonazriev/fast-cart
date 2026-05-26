@@ -2,7 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -116,7 +118,15 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
 }
+html,
+body,
+#root {
+  min-height: 100%;
+}
 
+body {
+  @apply bg-white dark:bg-black;
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -127,4 +137,13 @@
   html {
     @apply font-sans;
     }
+}
+
+
+.head{
+  position: sticky;
+  top:0;
+  width: 100%;
+  z-index: 9999;
+  background-color: white;
 }

@@ -1,294 +1,389 @@
 import { Card } from "@/components/ui/card";
 import { Heart, Eye, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-import sony from "./productimgskidki/Frame 611.png";
-import klaviatura from "./productimgskidki/Frame 612.png";
-import TV from "./productimgskidki/Frame 613.png";
-import stol from "./productimgskidki/Frame 614.png";
+const url =
+  "https://fastcard-1-o23z.onrender.com/api/Product/get-products";
 
-const products = [
-  {
-    id: 1,
-    title: "HAVIT HV-G92 Gamepad",
-    price: "$120",
-    oldPrice: "$160",
-    discount: "-40%",
-    rating: 5,
-    reviews: 88,
-    image: sony,
-  },
-  {
-    id: 2,
-    title: "AK-900 Wired Keyboard",
-    price: "$960",
-    oldPrice: "$1160",
-    discount: "-35%",
-    rating: 4,
-    reviews: 75,
-    image: klaviatura,
-  },
-  {
-    id: 3,
-    title: "IPS LCD Gaming Monitor",
-    price: "$370",
-    oldPrice: "$400",
-    discount: "-30%",
-    rating: 5,
-    reviews: 99,
-    image: TV,
-  },
-  {
-    id: 4,
-    title: "S-Series Comfort Chair",
-    price: "$375",
-    oldPrice: "$400",
-    discount: "-25%",
-    rating: 4,
-    reviews: 99,
-    image: stol,
-  },
-];
+export default function Products() {
+  const [products, setProducts] =
+    useState<any[]>([]);
 
+  const [favorites, setFavorites] =
+    useState<any[]>([]);
 
-export default function Products({ addToCart }: any) {
-  return (
-    <div className="max-w-[1400px] mx-auto py-10 px-4">
+  const [loading, setLoading] =
+    useState(true);
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+  // ================= GET PRODUCTS =================
 
-        {products.map((item) => (
-          <div key={item.id}>
+  async function getProducts() {
+    try {
+      const { data } =
+        await axios.get(url);
 
-            <Card
-              className="
-                group
-                bg-[#f5f5f5]
-                border-none
-                p-3 md:p-5
-                relative
-                overflow-hidden
-                rounded-md
-              "
-            >
+     setProducts(data.data.products)
+    } catch (error) {
+      console.log(error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-              {/* discount */}
-              <div
-                className="
-                  absolute
-                  top-3
-                  left-3
-                  md:top-4
-                  md:left-4
-                  bg-red-500
-                  text-white
-                  px-3
-                  py-1
-                  rounded
-                  text-sm
-                  z-20
-                "
-              >
-                {item.discount}
-              </div>
+  // ================= LOAD FAVORITES =================
 
-              {/* icons */}
-              <div
-                className="
-                  absolute
-                  right-3
-                  top-3
-                  md:right-4
-                  md:top-4
-                  flex
-                  flex-col
-                  gap-3
-                  z-30
-                "
-              >
+  useEffect(() => {
+    getProducts();
 
-                <button
-                  className="
-                    bg-white
-                    p-2 md:p-3
-                    rounded-full
-                    shadow
-                  "
-                >
-                  <Heart size={20} />
-                </button>
+    const savedFavorites =
+      JSON.parse(
+        localStorage.getItem(
+          "favorites"
+        ) || "[]"
+      );
 
-                <Link
-                  to={`/details/${item.id}`}
-                  className="
-                    bg-white
-                    p-2 md:p-3
-                    rounded-full
-                    shadow
-                    flex
-                    items-center
-                    justify-center
-                  "
-                >
-                  <Eye size={20} />
-                </Link>
+    setFavorites(savedFavorites);
+  }, []);
 
-              </div>
+  // ================= ADD TO CART =================
 
-              {/* image */}
-              <div
-                className="
-                  h-[160px]
-                  md:h-[250px]
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
+const addToCart = (
+  product: any
+) => {
 
-                <img
-                  src={item.image}
-                  alt=""
-                  className="
-                    w-[140px]
-                    md:w-[230px]
-                    h-[140px]
-                    md:h-[200px]
-                    object-contain
-                    transition
-                    duration-300
-                    group-hover:scale-105
-                  "
-                />
+  const savedCart = JSON.parse(
+    localStorage.getItem("cart") || "[]"
+  );
 
-              </div>
+  const existingProduct =
+    savedCart.find(
+      (item: any) =>
+        item.id === product.id
+    );
 
-              {/* add to cart */}
-              <button
-                onClick={() => addToCart(item)}
-                className="
-                  absolute
-                  left-0
-                  w-full
-                  bg-black
-                  text-white
-                  py-3
-                  md:py-4
-                  text-sm
-                  md:text-xl
-                  transition-all
-                  duration-300
+  let updatedCart = [];
 
-                  md:bottom-[-70px]
-                  md:group-hover:bottom-0
+  // если товар уже есть
+  if (existingProduct) {
 
-                  bottom-0
+    updatedCart = savedCart.map(
+      (item: any) => {
 
-                  z-10
-                "
-              >
-                Add To Cart
-              </button>
+        if (item.id === product.id) {
 
-            </Card>
+          return {
+            ...item,
+            quantity:
+              (item.quantity || 1) + 1,
+          };
+        }
 
-            {/* text */}
-            <div className="mt-4">
+        return item;
+      }
+    );
 
-              <h2
-                className="
-                  font-semibold
-                  text-[16px]
-                  md:text-[24px]
-                  leading-6
-                "
-              >
-                {item.title}
-              </h2>
+  } else {
 
-              {/* prices */}
-              <div className="flex gap-3 mt-2">
+    // если товара нет
+    updatedCart = [
+      ...savedCart,
+      {
+        ...product,
+        quantity: 1,
+      },
+    ];
+  }
 
-                <span
-                  className="
-                    text-red-500
-                    text-lg
-                    md:text-2xl
-                    font-semibold
-                  "
-                >
-                  {item.price}
-                </span>
+  localStorage.setItem(
+    "cart",
+    JSON.stringify(updatedCart)
+  );
 
-                <span
-                  className="
-                    text-gray-400
-                    text-lg
-                    md:text-2xl
-                    line-through
-                  "
-                >
-                  {item.oldPrice}
-                </span>
+  window.dispatchEvent(
+    new Event("cartUpdated")
+  );
+};
+  // ================= FAVORITES =================
 
-              </div>
+  const addToFavorites = (
+    product: any
+  ) => {
+    const savedFavorites =
+      JSON.parse(
+        localStorage.getItem(
+          "favorites"
+        ) || "[]"
+      );
 
-              {/* stars */}
-              <div className="flex items-center gap-2 mt-2">
+    const isExist =
+      savedFavorites.find(
+        (item: any) =>
+          item.id === product.id
+      );
 
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={16}
-                    fill={
-                      i < item.rating
-                        ? "orange"
-                        : "lightgray"
-                    }
-                  />
-                ))}
+    let updatedFavorites = [];
 
-                <span
-                  className="
-                    text-gray-500
-                    text-sm
-                    md:text-xl
-                  "
-                >
-                  ({item.reviews})
-                </span>
+    if (isExist) {
+      updatedFavorites =
+        savedFavorites.filter(
+          (item: any) =>
+            item.id !== product.id
+        );
+    } else {
+      updatedFavorites = [
+        ...savedFavorites,
+        product,
+      ];
+    }
 
-              </div>
+    setFavorites(updatedFavorites);
 
-            </div>
+    localStorage.setItem(
+      "favorites",
+      JSON.stringify(
+        updatedFavorites
+      )
+    );
 
-          </div>
-        ))}
+    window.dispatchEvent(
+      new Event(
+        "favoritesUpdated"
+      )
+    );
+  };
 
+  // ================= LOADING =================
+
+  if (loading) {
+    return (
+      <div
+        className="
+          text-center
+          py-20
+          text-3xl
+          font-bold
+        "
+      >
+        Loading...
       </div>
+    );
+  }
 
-      {/* button */}
-      <div className="flex justify-center mt-12 md:mt-16">
-
-        <Link
-          to="/category"
+  return (
+    <div
+      className="
+        max-w-[1400px]
+        mx-auto
+        py-10
+        px-4
+      "
+    >
+      {products.length === 0 ? (
+        <div
           className="
-            bg-red-500
-            text-white
-            px-8 md:px-16
-            py-4 md:py-5
-            rounded
-            text-lg md:text-2xl
-            inline-block
+            text-center
+            text-3xl
+            font-bold
           "
         >
-          View All Products
-        </Link>
+          No Products
+        </div>
+      ) : (
+        <div
+          className="
+            grid
+            grid-cols-2
+            md:grid-cols-4
+            gap-4
+            md:gap-8
+          "
+        >
+          {products.map(
+            (item: any) => (
+              <div key={item.id}>
+                <Card
+                  className="
+                    group
+                    bg-[#f5f5f5]
+                    dark:bg-transparent
+                    dark:border
+                    dark:border-zinc-700
+                    border-none
+                    p-3
+                    md:p-5
+                    relative
+                    overflow-hidden
+                    rounded-md
+                  "
+                >
+                  {/* HEART */}
 
-      </div>
+                  <div
+                    className="
+                      absolute
+                      right-3
+                      top-3
+                      flex
+                      flex-col
+                      gap-3
+                      z-30
+                    "
+                  >
+                    <button
+                      onClick={() =>
+                        addToFavorites(
+                          item
+                        )
+                      }
+                      className="
+                        bg-white
+                        dark:bg-zinc-900/40
+                        p-2
+                        rounded-full
+                      "
+                    >
+                      <Heart
+                        size={20}
+                        className={
+                          favorites.find(
+                            (
+                              fav
+                            ) =>
+                              fav.id ===
+                              item.id
+                          )
+                            ? "fill-red-500 text-red-500"
+                            : ""
+                        }
+                      />
+                    </button>
 
-      <hr className="mt-[70px] md:mt-[100px]" />
+                    {/* DETAILS */}
 
+                    <Link
+                      to={`/details/${item.id}`}
+                      className="
+                        bg-white
+                        dark:bg-zinc-900/40
+                        p-2
+                        rounded-full
+                        flex
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <Eye size={20} />
+                    </Link>
+                  </div>
+
+                  {/* IMAGE */}
+
+                  <div
+                    className="
+                      h-[160px]
+                      md:h-[250px]
+                      flex
+                      items-center
+                      justify-center
+                    "
+                  >
+                    <img
+                      src={item.image}
+                      alt=""
+                      className="
+                        w-[140px]
+                        md:w-[230px]
+                        h-[140px]
+                        md:h-[200px]
+                        object-contain
+                      "
+                    />
+                  </div>
+
+                  {/* ADD TO CART */}
+
+                  <button
+                    onClick={() =>
+                      addToCart(item)
+                    }
+                    className="
+                      absolute
+                      left-0
+                      w-full
+                      bg-black
+                      text-white
+                      py-3
+                      md:py-4
+                      text-sm
+                      md:text-xl
+                      transition-all
+                      duration-300
+                      md:bottom-[-70px]
+                      md:group-hover:bottom-0
+                      bottom-0
+                    "
+                  >
+                    Add To Cart
+                  </button>
+                </Card>
+
+                {/* TEXT */}
+
+                <div className="mt-4">
+                  <h2
+                    className="
+                      font-semibold
+                      text-[16px]
+                      md:text-[22px]
+                    "
+                  >
+                    {item.productName}
+                  </h2>
+
+                  <div className="flex gap-3 mt-2">
+                    <span
+                      className="
+                        text-red-500
+                        text-lg
+                        md:text-2xl
+                        font-semibold
+                      "
+                    >
+                      ${item.price}
+                    </span>
+                  </div>
+
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-2
+                      mt-2
+                    "
+                  >
+                    {[...Array(5)].map(
+                      (_, i) => (
+                        <Star
+                          key={i}
+                          size={16}
+                          fill={
+                            i < 4
+                              ? "orange"
+                              : "lightgray"
+                          }
+                        />
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 }

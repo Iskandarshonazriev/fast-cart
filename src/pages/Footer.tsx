@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Footer() {
   return (
-    <footer className="bg-black text-white mt-[136px]">
+    <footer className="bg-black text-white pt-[136px]">
       <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-10 py-10 md:py-16">
         <div className="
           grid

@@ -1,567 +1,694 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
+
 import {
-  Menu,
   ShoppingCart,
   Heart,
-  X,
-  Trash2,
+  Search,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
+
+import { useTheme } from "next-themes";
+
+import { useTranslation } from "react-i18next";
+
 import ProfileModal from "../components/ProfileModal";
 
+
+type Product = {
+  id: number;
+  productName: string;
+  price: number;
+  image: string;
+  quantity?: number;
+};
+
 export default function Navbar() {
-  // MOBILE MENU
-  const [open, setOpen] = useState(false);
 
-  // SEARCH
-  const [search, setSearch] = useState("");
+  // ================= THEME =================
 
-  // CART
-  const [cart, setCart] = useState<any[]>([]);
+  const { theme, setTheme } =
+    useTheme();
 
-  // OPEN CART
-  const [openCart, setOpenCart] =
+  // ================= TRANSLATE =================
+
+  const { t, i18n } =
+    useTranslation();
+
+  // ================= SEARCH =================
+
+  const [search, setSearch] =
+    useState("");
+
+  const [products, setProducts] =
+    useState<Product[]>([]);
+
+  const [
+    filteredProducts,
+    setFilteredProducts,
+  ] = useState<Product[]>([]);
+
+  const [openSearch, setOpenSearch] =
     useState(false);
 
-  // LOAD CART
+  // ================= CART =================
+
+  const [cart, setCart] =
+    useState<Product[]>([]);
+
+  // ================= FAVORITES =================
+
+  const [favorites, setFavorites] =
+    useState<Product[]>([]);
+
+  // ================= API =================
+
+  const url =
+    "https://fastcard-1-o23z.onrender.com/api/Product/get-products";
+
+  // ================= GET PRODUCTS =================
+
   useEffect(() => {
-    const loadCart = () => {
-      const savedCart = JSON.parse(
-        localStorage.getItem("cart") || "[]"
+
+    async function getProducts() {
+
+      try {
+
+        const { data } =
+          await axios.get(url);
+
+        console.log(data);
+
+        if (
+          Array.isArray(
+            data.data.products
+          )
+        ) {
+
+          setProducts(
+            data.data.products
+          );
+
+        } else {
+
+          setProducts([]);
+
+        }
+
+      } catch (error) {
+
+        console.log(error);
+
+        setProducts([]);
+
+      }
+    }
+
+    getProducts();
+
+  }, []);
+
+  // ================= SEARCH FILTER =================
+
+  useEffect(() => {
+
+    if (
+      search.trim() === ""
+    ) {
+
+      setFilteredProducts([]);
+
+      setOpenSearch(false);
+
+      return;
+    }
+
+    const filtered =
+      products.filter(
+        (item: Product) => {
+
+          return item.productName
+            ?.toLowerCase()
+            .trim()
+            .includes(
+              search
+                .toLowerCase()
+                .trim()
+            );
+        }
       );
+
+    setFilteredProducts(filtered);
+
+    setOpenSearch(true);
+
+  }, [search, products]);
+
+  // ================= LOAD CART =================
+
+  useEffect(() => {
+
+    const loadCart = () => {
+
+      const savedCart =
+        JSON.parse(
+          localStorage.getItem("cart") || "[]"
+        );
 
       setCart(savedCart);
     };
 
-    // first load
     loadCart();
 
-    // listen storage
     window.addEventListener(
-      "storage",
+      "cartUpdated",
       loadCart
     );
 
-    // custom event
-    window.addEventListener(
-      "cartUpdated",
-      loadCart as EventListener
-    );
-
     return () => {
-      window.removeEventListener(
-        "storage",
-        loadCart
-      );
 
       window.removeEventListener(
         "cartUpdated",
-        loadCart as EventListener
+        loadCart
       );
     };
+
   }, []);
 
-  // REMOVE ITEM
-  const removeFromCart = (
-    index: number
-  ) => {
-    const updatedCart = cart.filter(
-      (_, i) => i !== index
+  // ================= LOAD FAVORITES =================
+
+  useEffect(() => {
+
+    const loadFavorites = () => {
+
+      const savedFavorites =
+        JSON.parse(
+          localStorage.getItem(
+            "favorites"
+          ) || "[]"
+        );
+
+      setFavorites(savedFavorites);
+    };
+
+    loadFavorites();
+
+    window.addEventListener(
+      "favoritesUpdated",
+      loadFavorites
     );
 
-    setCart(updatedCart);
+    return () => {
 
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(updatedCart)
-    );
-  };
+      window.removeEventListener(
+        "favoritesUpdated",
+        loadFavorites
+      );
+    };
 
-  // CLEAR CART
-  const clearCart = () => {
-    setCart([]);
-
-    localStorage.removeItem("cart");
-  };
-
-  // TOTAL PRICE
-  const totalPrice = cart.reduce(
-    (acc, item) => acc + Number(item.price),
-    0
-  );
+  }, []);
 
   return (
-    <>
-      {/* ================= MOBILE ================= */}
-
-      <div className="lg:hidden border-b">
-        <div
-          className="
-          px-6
-          h-[90px]
-          flex
-          items-center
-          justify-between
-        "
-        >
-          {/* BURGER */}
-          <button
-            onClick={() => setOpen(true)}
-          >
-            <Menu size={35} />
-          </button>
-
-          {/* LOGO */}
-          <h1
-            className="
-            text-[36px]
-            font-bold
-          "
-          >
-            Exclusive
-          </h1>
-
-          {/* MOBILE CART */}
-          <div
-            className="relative cursor-pointer"
-            onClick={() =>
-              setOpenCart(!openCart)
-            }
-          >
-            <ShoppingCart size={35} />
-
-            <div
-              className="
-              absolute
-              -top-2
-              -right-2
-              w-6
-              h-6
-              rounded-full
-              bg-[#DB4444]
-              text-white
-              flex
-              items-center
-              justify-center
-              text-[13px]
-            "
-            >
-              {cart.length}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* OVERLAY */}
-      {open && (
-        <div
-          onClick={() => setOpen(false)}
-          className="
-          fixed
-          inset-0
-          bg-black/50
-          z-40
-        "
-        />
-      )}
-
-      {/* SIDEBAR */}
-      <div
-        className={`
-        fixed
+    <div
+      className="
+        sticky
         top-0
-        left-0
-        h-screen
-        w-[280px]
-        bg-white
         z-50
-        p-8
+
+        bg-white
+        dark:bg-black
+
+        text-black
+        dark:text-white
+
+        border-b
+
         duration-300
-        ${
-          open
-            ? "translate-x-0"
-            : "-translate-x-full"
-        }
-      `}
-      >
-        <div className="flex justify-end">
-          <button
-            onClick={() => setOpen(false)}
-          >
-            <X size={32} />
-          </button>
-        </div>
+      "
+    >
 
-        <div
-          className="
-          flex
-          flex-col
-          gap-8
-          mt-10
-          text-[24px]
-        "
-        >
-          <Link
-            to="/"
-            onClick={() => setOpen(false)}
-            className="
-            border-b
-            border-gray-300
-            pb-3
-            hover:text-gray-500
-          "
-          >
-            Home
-          </Link>
+      {/* ================= NAVBAR ================= */}
 
-          <Link
-            to="/contact"
-            onClick={() => setOpen(false)}
-            className="hover:text-gray-500"
-          >
-            Contact
-          </Link>
-
-          <Link
-            to="/about"
-            onClick={() => setOpen(false)}
-            className="hover:text-gray-500"
-          >
-            About
-          </Link>
-
-          <Link
-            to="/register"
-            onClick={() => setOpen(false)}
-            className="hover:text-gray-500"
-          >
-            Sign up
-          </Link>
-        </div>
-      </div>
-
-      {/* ================= DESKTOP ================= */}
-
-      <div className="hidden lg:block border-b">
-        <div
-          className="
-          max-w-[1200px]
+      <div
+        className="
+          max-w-[1300px]
           mx-auto
+
           h-[90px]
+
           flex
           items-center
           justify-between
-          relative
+
+          px-4
         "
-        >
-          {/* LOGO */}
+      >
+
+        {/* ================= LOGO ================= */}
+
+        <Link to="/">
+
           <h1
             className="
-            text-[32px]
-            font-bold
-          "
+              text-[34px]
+              font-bold
+            "
           >
             Exclusive
           </h1>
 
-          {/* NAV */}
-          <section
-            className="
-            flex
+        </Link>
+
+        {/* ================= NAV ================= */}
+
+        <div
+          className="
+            hidden
+            lg:flex
+
             items-center
             gap-8
           "
-          >
-            <Link
-              className="
-              border-b
-              hover:text-gray-400
-            "
-              to="/"
-            >
-              Home
-            </Link>
+        >
 
-            <Link
-              className="hover:text-gray-400"
-              to="/contact"
-            >
-              Contact
-            </Link>
+          <Link to="/">
+            {t("home")}
+          </Link>
 
-            <Link
-              className="hover:text-gray-400"
-              to="/about"
-            >
-              About
-            </Link>
+          <Link to="/contact">
+            {t("contact")}
+          </Link>
 
-            <Link
-              className="hover:text-gray-400"
-              to="/register"
-            >
-              Sign up
-            </Link>
-          </section>
+          <Link to="/about">
+            {t("about")}
+          </Link>
 
-          {/* RIGHT */}
-          <section
-            className="
+          <Link to="/register">
+            {t("signup")}
+          </Link>
+
+        </div>
+
+        {/* ================= RIGHT ================= */}
+
+        <div
+          className="
             flex
             items-center
-            gap-5
+            gap-4
+            relative
           "
-          >
-            {/* SEARCH */}
+        >
+
+          {/* ================= SEARCH ================= */}
+
+          <div className="relative">
+
             <div
               className="
-              flex
-              items-center
-              gap-3
-            "
+                hidden
+                md:flex
+
+                items-center
+
+                px-4
+
+                h-[55px]
+                w-[320px]
+
+                rounded-2xl
+
+                bg-gray-100
+                dark:bg-zinc-900/50
+
+                backdrop-blur-xl
+
+                border
+                border-transparent
+
+                dark:border-zinc-800
+              "
             >
+
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t("search")}
                 value={search}
                 onChange={(e) =>
-                  setSearch(e.target.value)
+                  setSearch(
+                    e.target.value
+                  )
                 }
                 className="
-                border
-                px-4
-                py-3
-                rounded-md
-                outline-none
-                w-[250px]
-              "
+                  flex-1
+                  bg-transparent
+                  outline-none
+                "
               />
+
+              <Search size={20} />
+
             </div>
 
-            {/* HEART */}
-            <button>
-              <Heart />
-            </button>
+            {/* ================= SEARCH DROPDOWN ================= */}
 
-            {/* CART */}
-            <div
-              className="
-              relative
-              cursor-pointer
-            "
-              onClick={() =>
-                setOpenCart(!openCart)
-              }
-            >
-              <ShoppingCart size={30} />
+            {openSearch && (
 
-              {/* COUNT */}
-              <span
-                className="
-                absolute
-                -top-2
-                -right-2
-                bg-red-500
-                text-white
-                text-xs
-                w-5
-                h-5
-                rounded-full
-                flex
-                items-center
-                justify-center
-              "
-              >
-                {cart.length}
-              </span>
-            </div>
-
-            {/* CART DROPDOWN */}
-            {openCart && (
               <div
                 className="
-                absolute
-                right-0
-                top-20
-                w-[380px]
-                bg-white
-                shadow-2xl
-                rounded-2xl
-                p-5
-                z-50
-                border
-              "
-              >
-                {/* TITLE */}
-                <div
-                  className="
-                  flex
-                  items-center
-                  justify-between
-                  mb-5
+                  absolute
+                  top-16
+                  left-0
+
+                  w-[340px]
+
+                  max-h-[400px]
+                  overflow-y-auto
+
+                  bg-white
+                  dark:bg-zinc-900/95
+
+                  backdrop-blur-2xl
+
+                  border
+                  border-gray-200
+                  dark:border-zinc-800
+
+                  rounded-2xl
+
+                  overflow-hidden
+
+                  shadow-[0_20px_60px_rgba(0,0,0,0.12)]
+                  dark:shadow-[0_20px_80px_rgba(0,0,0,0.6)]
+
+                  z-50
                 "
-                >
-                  <h2
-                    className="
-                    text-2xl
-                    font-bold
-                  "
-                  >
-                    Cart
-                  </h2>
+              >
 
-                  {cart.length > 0 && (
-                    <button
-                      onClick={clearCart}
-                      className="
-                      text-red-500
-                      text-sm
-                    "
-                    >
-                      Clear All
-                    </button>
-                  )}
-                </div>
+                {/* ================= EMPTY ================= */}
 
-                {/* EMPTY */}
-                {cart.length === 0 ? (
+                {filteredProducts.length === 0 && (
+
                   <div
                     className="
-                    text-center
-                    py-10
-                    text-gray-400
-                  "
-                  >
-                    Cart is empty 🛒
-                  </div>
-                ) : (
-                  <>
-                    {/* ITEMS */}
-                    <div className="space-y-4 max-h-[350px] overflow-auto">
-                      {cart.map(
-                        (item, index) => (
-                          <div
-                            key={index}
-                            className="
-                            flex
-                            items-center
-                            justify-between
-                            gap-4
-                            border-b
-                            pb-4
-                          "
-                          >
-                            <div className="flex items-center gap-4">
-                              <img
-                                src={item.image}
-                                className="
-                                w-16
-                                h-16
-                                object-contain
-                                bg-gray-100
-                                rounded
-                              "
-                              />
-
-                              <div>
-                                <h3
-                                  className="
-                                  font-semibold
-                                  text-sm
-                                "
-                                >
-                                  {item.title}
-                                </h3>
-
-                                <p
-                                  className="
-                                  text-red-500
-                                  font-bold
-                                  mt-1
-                                "
-                                >
-                                  ${item.price}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* DELETE */}
-                            <button
-                              onClick={() =>
-                                removeFromCart(
-                                  index
-                                )
-                              }
-                              className="
-                              text-red-500
-                              hover:scale-110
-                              transition
-                            "
-                            >
-                              <Trash2 size={20} />
-                            </button>
-                          </div>
-                        )
-                      )}
-                    </div>
-
-                    {/* TOTAL */}
-                    <div
-                      className="
-                      mt-6
-                      border-t
-                      pt-5
+                      p-5
+                      text-center
+                      text-gray-500
                     "
-                    >
-                      <div
-                        className="
+                  >
+                    No Products
+                  </div>
+
+                )}
+
+                {/* ================= PRODUCTS ================= */}
+
+                {filteredProducts.map(
+                  (item: Product) => (
+
+                    <Link
+                      key={item.id}
+                      to={`/details/${item.id}`}
+                      onClick={() => {
+
+                        setSearch("");
+
+                        setOpenSearch(false);
+
+                      }}
+                      className="
                         flex
                         items-center
-                        justify-between
-                        text-lg
-                        font-bold
-                      "
-                      >
-                        <p>Total:</p>
+                        gap-4
 
-                        <p>${totalPrice}</p>
+                        p-4
+
+                        hover:bg-gray-100
+                        dark:hover:bg-zinc-800
+
+                        transition
+                        duration-300
+                      "
+                    >
+
+                      <img
+                        src={
+                          item.image ||
+                          "https://via.placeholder.com/150"
+                        }
+                        alt=""
+                        className="
+                          w-16
+                          h-16
+                          object-contain
+                        "
+                      />
+
+                      <div>
+
+                        <h2
+                          className="
+                            font-semibold
+                          "
+                        >
+                          {item.productName}
+                        </h2>
+
+                        <p
+                          className="
+                            text-red-500
+                            font-bold
+                            mt-1
+                          "
+                        >
+                          ${item.price}
+                        </p>
+
                       </div>
 
-                      {/* CHECKOUT */}
-                      <Link
-                        to="/cart"
-                        onClick={() =>
-                          setOpenCart(false)
-                        }
-                        className="
-                        w-full
-                        mt-5
-                        bg-red-500
-                        text-white
-                        h-[55px]
-                        rounded-xl
-                        font-semibold
-                        hover:opacity-90
-                        transition
-                        flex
-                        items-center
-                        justify-center
-                      "
-                      >
-                        Checkout
-                      </Link>
-                    </div>
-                  </>
+                    </Link>
+
+                  )
                 )}
+
               </div>
+
             )}
 
-            {/* PROFILE */}
-            <ProfileModal />
-          </section>
+          </div>
+
+          {/* ================= LANGUAGE ================= */}
+
+          <div className="hidden md:flex gap-2">
+
+            <button
+              onClick={() =>
+                i18n.changeLanguage("en")
+              }
+              className={`
+                px-3
+                py-1
+                rounded-lg
+                border
+
+                ${
+                  i18n.language === "en"
+                    ? "bg-black text-white dark:bg-white dark:text-black"
+                    : "dark:border-zinc-700"
+                }
+              `}
+            >
+              EN
+            </button>
+
+            <button
+              onClick={() =>
+                i18n.changeLanguage("ru")
+              }
+              className={`
+                px-3
+                py-1
+                rounded-lg
+                border
+
+                ${
+                  i18n.language === "ru"
+                    ? "bg-black text-white dark:bg-white dark:text-black"
+                    : "dark:border-zinc-700"
+                }
+              `}
+            >
+              RU
+            </button>
+
+          </div>
+
+          {/* ================= THEME ================= */}
+
+          <button
+            onClick={() =>
+              setTheme(
+                theme === "dark"
+                  ? "light"
+                  : "dark"
+              )
+            }
+            className="
+              w-11
+              h-11
+
+              rounded-full
+
+              flex
+              items-center
+              justify-center
+
+              border
+              dark:border-zinc-700
+            "
+          >
+
+         {theme === "dark" ? (
+  <Sun
+    size={20}
+    className="text-yellow-400"
+  />
+) : (
+  <Moon
+    size={20}
+    className="text-black"
+  />
+)}
+
+          </button>
+
+          {/* ================= FAVORITES ================= */}
+
+          <Link
+            to="/wishlist"
+            className="
+              relative
+
+              w-11
+              h-11
+
+              rounded-full
+
+              flex
+              items-center
+              justify-center
+
+              border
+              dark:border-zinc-700
+            "
+          >
+
+            <Heart size={20} />
+
+            {favorites.length > 0 && (
+
+              <span
+                className="
+                  absolute
+                  -top-2
+                  -right-2
+
+                  w-5
+                  h-5
+
+                  rounded-full
+
+                  bg-red-500
+                  text-white
+
+                  text-xs
+
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                {favorites.length}
+              </span>
+
+            )}
+
+          </Link>
+
+          {/* ================= CART ================= */}
+
+          <Link
+            to="/cart"
+            className="
+              relative
+
+              w-11
+              h-11
+
+              rounded-full
+
+              flex
+              items-center
+              justify-center
+
+              border
+              dark:border-zinc-700
+            "
+          >
+
+            <ShoppingCart size={20} />
+
+            {cart.length > 0 && (
+
+              <span
+                className="
+                  absolute
+                  -top-2
+                  -right-2
+
+                  w-5
+                  h-5
+
+                  rounded-full
+
+                  bg-red-500
+                  text-white
+
+                  text-xs
+
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                {
+                  cart.reduce(
+                    (
+                      total,
+                      item: any
+                    ) =>
+                      total +
+                      (item.quantity || 1),
+                    0
+                  )
+                }
+              </span>
+
+            )}
+
+          </Link>
+
+          {/* ================= PROFILE ================= */}
+
+          <ProfileModal />
+
         </div>
+
       </div>
-    </>
+
+    </div>
   );
 }

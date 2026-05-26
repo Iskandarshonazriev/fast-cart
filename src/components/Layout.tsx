@@ -1,13 +1,13 @@
-import React from "react";
-import Header from "../pages/Header";
+
 import { Outlet } from "react-router-dom";
 import Footer from "../pages/Footer";
+import Navbar from "../pages/Header";
 
 
 const Layout = () => {
   return (
     <div className="bg-[#FFFFFF]">
-      <Header />
+      <Navbar />
       <Outlet />
       <Footer />
     </div>
